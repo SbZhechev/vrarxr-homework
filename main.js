@@ -1,31 +1,16 @@
-vaxInit( {antialias:true, alpha:true} );
-			
-light.position.set(0, 0, 0);
+vaxInit();
 
-const geometry = new THREE.BoxGeometry(200, 200, 200, 15, 15, 15);
-const material = new THREE.MeshLambertMaterial( {color: 'green', side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1} );
-const cube = new THREE.Mesh( geometry, material );
-scene.add( cube );
+let cubeTexture = new THREE.CubeTextureLoader().load( ['berzelii/posx.jpg', 'berzelii/negx.jpg', 'berzelii/posy.jpg', 'berzelii/negy.jpg', 'berzelii/posz.jpg', 'berzelii/negz.jpg' ] );
+cubeTexture.mapping = THREE.CubeRefractionMapping;
 
-const material2 = new THREE.MeshPhongMaterial({
-    color:'white',
-    wireframe:true,
-    wireframeLinecap: 'butt',
-});
-const wireframe = new THREE.Mesh(geometry.clone(), material2);
-scene.add(wireframe);
-
-camera.position.set(0, 0, 0);
-camera.lookAt(new THREE.Vector3( 0, 0, -1 ));
-
-generateCones();
+scene.background = cubeTexture;
 
 window.addEventListener( "deviceorientation", deviceOrientation, true);
-			
+    
 function deviceOrientation( event )
 {
-    var alpha = event.alpha,
-        gamma = event.gamma;
+    let alpha = event.alpha;
+    let gamma = event.gamma;
 
     if( alpha === null ) return;
 
@@ -43,15 +28,26 @@ function deviceOrientation( event )
     camera.rotation.set( gamma, alpha, 0, 'YZX' );
 }
 
-function generateCones() {
-    const coneGeometry = new THREE.CylinderGeometry( 0, 2, 10, 32 );
-    let coneMaterial;
-    let cone;
-    for(let i=0; i < 500; i++) {
-        coneMaterial = new THREE.MeshLambertMaterial();
-        coneMaterial.color = new THREE.Color(Math.random(),Math.random(),Math.random());
-        cone = new THREE.Mesh( coneGeometry, coneMaterial );
-        cone.position.set(THREE.Math.randFloat(-100,100), THREE.Math.randFloat(-90,90) , THREE.Math.randFloat(-100,100));
-        scene.add( cone );
+let crystals = [];
+
+function generateCrystals() {
+    let crystalGeometry = new THREE.IcosahedronGeometry( 10, 0 );
+
+    let crystalMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff, envMap: cubeTexture, refractionRatio: 0.97, transparent: true });
+
+    let crystal;
+
+    for(let i=0; i < 35; i++) {
+        crystal = new THREE.Mesh( crystalGeometry, crystalMaterial );
+        crystal.position.set(THREE.Math.randFloat(-500,300), THREE.Math.randFloat(10, 90) , THREE.Math.randFloat(-100, 300));
+        crystals.push(crystal);
+        scene.add( crystal );
     }
+}
+
+generateCrystals();
+
+function animate()
+{
+    crystals.map((crystal) => crystal.rotation.y = t/3);
 }
